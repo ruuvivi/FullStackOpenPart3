@@ -14,16 +14,15 @@ const url =
 
 mongoose.set('strictQuery',false)
 
-mongoose.connect(url)
+mongoose.connect(url).then(() => {
+  const personSchema = new mongoose.Schema({
+    name: String,
+    number: String
+  })
+  
+  const Person = mongoose.model('Person', personSchema)
 
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String
-})
-
-const Person = mongoose.model('Person', personSchema)
-
-if (process.argv.length === 3) {
+  if (process.argv.length === 3) {
     Person.find({}).then(result => {
       console.log("phonebook:")
       result.forEach(person => {
@@ -40,4 +39,6 @@ if (process.argv.length === 3) {
       console.log(`added ${person.name} ${person.number} to phonebook`)
       mongoose.connection.close()
     })
-  }
+  } 
+}
+)

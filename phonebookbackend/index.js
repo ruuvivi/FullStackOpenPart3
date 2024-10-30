@@ -1,79 +1,59 @@
 const express = require('express')
 const app = express()
-const morgan = require('morgan');
+app.use(express.json())
+//const morgan = require('morgan');
 
 const cors = require('cors')
-
 app.use(cors())
 
 require('dotenv').config();
 
-const mongoose = require('mongoose')
+app.use(express.static('dist'))
+
+const requestLogger = (request, response, next) => {
+  console.log('Method:', request.method)
+  console.log('Path:  ', request.path)
+  console.log('Body:  ', request.body)
+  console.log('---')
+  next()
+}
+app.use(requestLogger)
+
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
 
 const Person = require('./models/person')
 
-//const password = process.argv[2]
+let persons = []
 
-const url = process.env.MONGODB_URI;
+//app.use(morgan('tiny'))
 
-mongoose.set('strictQuery',false)
-mongoose.connect(url)
+//morgan.token('body', function (req) {if (req.method === 'POST'){ return JSON.stringify(req.body) }})
 
-const personSchema = new mongoose.Schema({
-  name: String,
-  number: String,
-})
+//app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-//const Person = mongoose.model('Person', personSchema)
-
-let persons = [
-  /*{
-    id: "1",
-    name: "Arto Hellas",
-    number: "040-123456"
-  },
-  {
-    id: "2",
-    name: "Ada Lovelace",
-    number: "39-44-5323523"
-  },
-  {
-    id: "3",
-    name: "Dan Abramov",
-    number: "12-43-234345"
-  },
-  {
-    id: "4",
-    name: "Mary Poppendieck",
-    number: "39-23-6423122"
-  }*/
-]
-
-app.use(express.json())
-
-app.use(morgan('tiny'))
-
-app.use(express.static('dist'))
-
-morgan.token('body', function (req) {if (req.method === 'POST'){ return JSON.stringify(req.body) }})
-
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
-
-personSchema.set('toJSON', {
+/*personSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString()
     delete returnedObject._id
     delete returnedObject.__v
   }
-})
+}) */
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
 
 app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>')
 })
-
-/*app.get('/api/persons', (request, response) => {
-  response.json(persons)
-})*/
 
 app.get('/api/persons', (request, response) => {
   Person.find({}).then(persons => {
@@ -124,14 +104,17 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id
+  Person.findById(request.params.id).then(person => {
+    response.json(person)
+  })
+  /*const id = request.params.id
   const person = persons.find(person => person.id === id)
   if (person) {
     response.json(person)
   } else {
     console.log('x')
     response.status(404).end()
-  }
+  }*/
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -140,6 +123,10 @@ app.delete('/api/persons/:id', (request, response) => {
 
   response.status(204).end()
 })
+
+app.use(unknownEndpoint)
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
