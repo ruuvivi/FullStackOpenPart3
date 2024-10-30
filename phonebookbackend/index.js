@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 app.use(express.json())
-//const morgan = require('morgan');
+const morgan = require('morgan');
 
 const cors = require('cors')
 app.use(cors())
@@ -33,11 +33,11 @@ const Person = require('./models/person')
 
 let persons = []
 
-//app.use(morgan('tiny'))
+app.use(morgan('tiny'))
 
-//morgan.token('body', function (req) {if (req.method === 'POST'){ return JSON.stringify(req.body) }})
+morgan.token('body', function (req) {if (req.method === 'POST'){ return JSON.stringify(req.body) }})
 
-//app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 /*personSchema.set('toJSON', {
   transform: (document, returnedObject) => {
@@ -61,37 +61,18 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-const generateId = () => {
+/*const generateId = () => {
   return Math.floor(Math.random() * 20000)
+}*/
+
+const nameExists = (name) => {
+  data.persons.forEach(element => {
+    if (element.name === name) {
+      return true
+    }
+  })
+  return false
 }
-
-app.post('/api/persons', (request, response) => {
-  const body = request.body
-
-  if (!body.name || !body.number) {
-    return response.status(400).json({ 
-      error: 'name or number is missing' 
-    })
-  }
-
-  const filterNames = persons.filter(person => person.name === body.name)
-  const nameExists = filterNames.length > 0;
-  if (nameExists) {
-    return response.status(400).json({
-      error: 'name must be unique'
-    })
-  }
-
-  const person = {
-    id: generateId(),
-    name: body.name,
-    number: body.number
-  }
-
-  persons = persons.concat(person)
-
-  response.json(person)
-})
 
 app.get('/info', (request, response) => {
   const numOfPeople = persons.length
@@ -103,10 +84,15 @@ app.get('/info', (request, response) => {
   `)
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   Person.findById(request.params.id).then(person => {
-    response.json(person)
+    if (person) {
+      request.json(person.toJSON)
+    } else {
+      response.status(404).end()
+    }
   })
+  .catch(error => next(error))
   /*const id = request.params.id
   const person = persons.find(person => person.id === id)
   if (person) {
@@ -117,11 +103,56 @@ app.get('/api/persons/:id', (request, response) => {
   }*/
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-  const id = request.params.id
+app.delete('/api/persons/:id', (request, response, next) => {
+  Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
+
+  /*const id = request.params.id
   persons = persons.filter(person => person.id !== id)
 
-  response.status(204).end()
+  response.status(204).end()*/
+})
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body
+
+  const person = {
+    name: body.name,
+    number: body.number,
+  }
+
+  Person.findByIdAndUpdate(request.params.id, person, {new: true})
+    .then(updatedPerson => {
+      response.json(updatedPerson.toJSON())
+    })
+    .catch(error => next(error))
+})
+
+app.post('/api/persons', (request, response, next) => {
+  const body = request.body
+
+  if (!body.name || !body.number) {
+    return response.status(400).json({ 
+      error: 'name or number is missing' 
+    })
+  }
+
+  if (nameExists(body.name)) {
+    return response.status(400).json({
+      error: 'name must be unique'
+    })
+  }
+  const person = new Person({
+    name: body.name,
+    number: body.number
+  })
+  person.save().then(savedPerson => {
+    response.json(savedPerson.toJSON())
+  })
+    .catch(error => next(error))
 })
 
 app.use(unknownEndpoint)
