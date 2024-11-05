@@ -68,7 +68,7 @@ app.get('/api/persons', (request, response) => {
 }*/
 
 const nameExists = (name) => {
-  data.persons.forEach(element => {
+  persons.forEach(element => {
     if (element.name === name) {
       return true
     }

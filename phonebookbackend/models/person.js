@@ -24,13 +24,13 @@ const personSchema = new mongoose.Schema({
     validate: {
       validator: function(v) {
         return /^(\d{2,3})-\d+$/.test(v); // $ = no additional characters after numbers
-      },
+      }},
     type: String,
     minlength: 8,
     required: true
   }
 }
-})
+)
 
 personSchema.set('toJSON', {
   transform: (document, returnedObject) => {
