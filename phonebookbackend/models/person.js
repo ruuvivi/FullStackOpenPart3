@@ -7,7 +7,7 @@ const url = process.env.MONGODB_URI
 console.log('connecting to', url)
 
 mongoose.connect(url)
-  .then(result => {
+  .then(() => {
     console.log('connected to MongoDB')
   })
   .catch(error => {
@@ -23,8 +23,8 @@ const personSchema = new mongoose.Schema({
   number: {
     validate: {
       validator: function(v) {
-        return /^(\d{2,3})-\d+$/.test(v); // $ = no additional characters after numbers
-      }},
+        return /^(\d{2,3})-\d+$/.test(v) // $ = no additional characters after numbers
+      } },
     type: String,
     minlength: 8,
     required: true

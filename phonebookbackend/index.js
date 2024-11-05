@@ -1,12 +1,12 @@
 const express = require('express')
 const app = express()
 app.use(express.json())
-const morgan = require('morgan');
+const morgan = require('morgan')
 
 const cors = require('cors')
 app.use(cors())
 
-require('dotenv').config();
+require('dotenv').config()
 
 app.use(express.static('dist'))
 
@@ -79,7 +79,7 @@ const nameExists = (name) => {
 app.get('/info', (request, response) => {
   const numOfPeople = persons.length
   const currentTime = new Date()
-  
+
   response.send(`
     <p>Phonebook has info for ${numOfPeople} people</p>
     <p>${currentTime}</p>
@@ -93,8 +93,7 @@ app.get('/api/persons/:id', (request, response, next) => {
     } else {
       response.status(404).end()
     }
-  })
-  .catch(error => next(error))
+  }).catch(error => next(error))
   /*const id = request.params.id
   const person = persons.find(person => person.id === id)
   if (person) {
@@ -107,7 +106,7 @@ app.get('/api/persons/:id', (request, response, next) => {
 
 app.delete('/api/persons/:id', (request, response, next) => {
   Person.findByIdAndDelete(request.params.id)
-    .then(result => {
+    .then(() => {
       response.status(204).end()
     })
     .catch(error => next(error))
@@ -119,7 +118,7 @@ app.delete('/api/persons/:id', (request, response, next) => {
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
-  const {name, number} = request.body
+  const { name, number } = request.body
 
   Person.findByIdAndUpdate(
     request.params.id,
@@ -136,8 +135,8 @@ app.post('/api/persons', (request, response, next) => {
   const body = request.body
 
   if (!body.name || !body.number) {
-    return response.status(400).json({ 
-      error: 'name or number is missing' 
+    return response.status(400).json({
+      error: 'name or number is missing'
     })
   }
 
