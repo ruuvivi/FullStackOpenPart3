@@ -41,14 +41,6 @@ morgan.token('body', function (req) {if (req.method === 'POST'){ return JSON.str
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
-/*personSchema.set('toJSON', {
-  transform: (document, returnedObject) => {
-    returnedObject.id = returnedObject._id.toString()
-    delete returnedObject._id
-    delete returnedObject.__v
-  }
-}) */
-
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: 'unknown endpoint' })
 }
@@ -62,10 +54,6 @@ app.get('/api/persons', (request, response) => {
     response.json(persons)
   })
 })
-
-/*const generateId = () => {
-  return Math.floor(Math.random() * 20000)
-}*/
 
 const nameExists = (name) => {
   persons.forEach(element => {
@@ -94,14 +82,6 @@ app.get('/api/persons/:id', (request, response, next) => {
       response.status(404).end()
     }
   }).catch(error => next(error))
-  /*const id = request.params.id
-  const person = persons.find(person => person.id === id)
-  if (person) {
-    response.json(person)
-  } else {
-    console.log('x')
-    response.status(404).end()
-  }*/
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
@@ -110,11 +90,6 @@ app.delete('/api/persons/:id', (request, response, next) => {
       response.status(204).end()
     })
     .catch(error => next(error))
-
-  /*const id = request.params.id
-  persons = persons.filter(person => person.id !== id)
-
-  response.status(204).end()*/
 })
 
 app.put('/api/persons/:id', (request, response, next) => {
