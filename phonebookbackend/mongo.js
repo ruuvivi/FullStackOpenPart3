@@ -10,7 +10,7 @@ const name = process.argv[3]
 const number = process.argv[4]
 
 const url =
-  `mongodb+srv://ruuskvivi:${password}@cluster0.nl1xg.mongodb.net/personApp?retryWrites=true&w=majority&appName=Cluster0`
+  `mongodb+srv://devvivi:${password}@cluster0.nl1xg.mongodb.net/personApp?retryWrites=true&w=majority`
 
 mongoose.set('strictQuery',false)
 
